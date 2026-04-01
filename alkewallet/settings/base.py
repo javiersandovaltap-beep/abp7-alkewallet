@@ -4,12 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ⚠️ Ahora base.py está 3 niveles adentro, necesita 3 .parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'clave-insegura-solo-desarrollo')
 
-# NO pongas DEBUG ni DATABASES aquí — van en cada entorno
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

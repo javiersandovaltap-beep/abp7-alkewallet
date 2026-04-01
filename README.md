@@ -130,6 +130,36 @@ Acceso: `http://127.0.0.1:8000/`
 **Problema:** En dispositivos móviles, los elementos del buscador se sobreponían o desaparecían.  
 **Solución:** Migración a un sistema de cuadrícula flexible (Grid) y eliminación de márgenes negativos obsoletos.
 
+### 5. `/login/` devolvía 404
+**Causa:** La ruta de login no estaba en `urls.py`.  
+**Solución:**
+```python
+from django.contrib.auth import views as auth_views
+path('login/', auth_views.LoginView.as_view(), name='login'),
+```
+
+### 6. `block content` duplicado en template
+**Causa:** Al pegar código se duplicó `{% block content %}`.  
+**Síntoma:** `TemplateSyntaxError: 'block' tag with name 'content' appears more than once`.  
+**Solución:** Cada template debe tener exactamente una apertura y un cierre del bloque.
+
+### 7. Dark Mode — pérdida de tema al recargar
+**Causa:** El estado del tema no persistía entre navegaciones.  
+**Solución:** Script en `base.html` con `localStorage` y variables CSS con
+`@media (prefers-color-scheme)` y selector `[data-theme="dark"]`.
+
+### 8. Responsividad en el buscador (mobile)
+**Causa:** Elementos del buscador se superponían en pantallas pequeñas.  
+**Solución:** Migración a sistema de grilla flexible y eliminación de márgenes negativos.
+
+### 9. `saldo_promedio` calculado pero no usado
+**Causa:** `Avg('saldo')` en `aggregate()` nunca entraba al contexto.  
+**Solución:** Se eliminó el import de `Avg` y el cálculo innecesario.
+
+### 10. `numero_cuenta` faltaba en el seed `poblar_db`
+**Causa:** Al agregar el campo al modelo, el comando seed no se actualizó.  
+**Solución:** Agregar `numero_cuenta` único a cada entrada de `cuentas_data`.
+
 ---
 
 ## 🔍 Motor de Búsqueda y Filtros (Punto Clave ABP)
@@ -154,26 +184,124 @@ A diferencia de un CRUD simple, **AlkeWallet** gestiona la integridad de los fon
 
 ## ❓ Preguntas de Cierre
 
-**1. ¿Qué modelos definiste y por qué?**  
-Se definieron `Cuenta` (para representar balances y titulares) y `Transaccion` (para registrar movimientos). Esta separación es fundamental para normalizar la base de datos y permitir un historial de auditoría claro por cada cuenta.
+### Sobre los Modelos
 
-**2. ¿Cómo garantizaste la seguridad de los datos entre usuarios?**  
-Se implementó un sistema de **Multi-tenancy** a nivel de aplicación sobrescribiendo el método `get_queryset()` en todas las Clase-Based Views, asegurando que cada consulta a la base de datos esté filtrada por `request.user`.
+**1. ¿Qué modelos definiste y por qué elegiste esos?**  
+`Cuenta` y `Transaccion`. Una wallet necesita representar los contenedores
+de dinero (cuentas con titular, tipo y saldo) y los movimientos sobre ellos
+(transacciones con tipo, monto y fecha). Separarlos normaliza la base de datos
+y permite un historial de auditoría claro por cada cuenta sin duplicar datos.
 
-**3. ¿Qué métodos del ORM fueron vitales para las estadísticas?**  
-El uso de `.aggregate()` con `Sum` y `Count` permitió obtener totales financieros de forma eficiente directamente desde el motor de base de datos, evitando cargar registros innecesarios en la memoria de Python.
+**2. ¿Qué tipo de relación usaste y por qué esa y no otra?**  
+`ForeignKey` de `Transaccion` hacia `Cuenta` — relación muchos a uno.
+Una cuenta puede tener muchas transacciones, pero cada transacción pertenece
+a exactamente una cuenta. `ManyToMany` no aplica porque una transacción no
+pertenece a varias cuentas simultáneamente. `OneToOne` no aplica porque
+una cuenta tiene múltiples transacciones.
+
+**3. ¿Qué valor le pusiste a `on_delete` y por qué?**  
+`CASCADE`. Al eliminar una cuenta, sus transacciones históricas quedan
+huérfanas sin significado financiero, por lo que deben eliminarse
+automáticamente para mantener la consistencia de los datos.
+
+### Sobre el ORM
+
+**4. ¿Qué métodos del ORM usaste para cada operación CRUD?**
+
+- **Crear:** `form.save()` en `CreateView` → ejecuta `INSERT`
+- **Leer:** `.all()`, `.get(pk=pk)`, `.select_related('cuenta')`, `.order_by()`
+- **Actualizar:** `form.save()` en `UpdateView` → ejecuta `UPDATE`
+- **Eliminar:** `objeto.delete()` en `DeleteView` → ejecuta `DELETE`
+- **Estadísticas:** `.aggregate(Count('id'), Sum('saldo'))`
+
+**5. ¿Qué método usaste en la vista de filtro/búsqueda?**  
+`.filter()` con objetos `Q()` para condiciones `OR` entre campos de distintos
+modelos. Se encadenan múltiples `.filter()` para condiciones `AND`
+(tipo + rango de fechas).
+
+**6. ¿Cuál es la diferencia entre `.get()` y `.filter()`?**  
+`.get()` retorna exactamente **un** objeto o lanza excepción
+(`DoesNotExist` si no existe, `MultipleObjectsReturned` si hay más de uno).
+Se usa cuando el resultado es único, como buscar por PK en `DetailView`.  
+`.filter()` siempre retorna un `QuerySet` —puede estar vacío—, ideal para
+listas y búsquedas donde el número de resultados es variable.
+
+### Sobre las Migraciones
+
+**7. ¿Qué pasaría si modificás un modelo sin generar una nueva migración?**  
+La clase Python y la tabla SQL quedan desincronizadas. Django lanzaría
+`OperationalError: no such column` al intentar consultar o guardar datos,
+porque el campo existe en el modelo pero no en la base de datos real.
+Este error ocurrió exactamente durante el desarrollo al agregar `numero_cuenta`
+sin aplicar la migración correctamente.
+
+**8. ¿Dónde se almacenan los archivos de migración y para qué sirven?**  
+En `wallet/migrations/`. Son el historial versionado de cambios al esquema
+de la DB. Permiten reproducir la estructura exacta en cualquier entorno
+(desarrollo, producción, CI/CD) y revertir cambios con
+`python manage.py migrate <app> <número_de_migración>`.
+
+### Sobre la Arquitectura
+
+**9. ¿Por qué la lógica de DB debe estar en las vistas y no en los templates?**  
+Los templates solo deben **renderizar** datos ya preparados. Incluir lógica
+de base de datos en templates rompe la separación MTV (Model-Template-View),
+hace imposible escribir tests unitarios sobre esa lógica y mezcla
+responsabilidades de presentación con acceso a datos. Django mismo refuerza
+esta separación: los templates no tienen acceso directo al ORM.
+
+**10. ¿Cuál es el flujo completo de una solicitud en Django?**
+Usuario hace clic / escribe URL
+
+urls.py busca el patrón coincidente
+
+View asociada es invocada
+
+View consulta modelos a través del ORM
+
+ORM genera SQL y lo ejecuta contra SQLite
+
+ORM retorna objetos Python a la view
+
+View construye el contexto y llama al template
+
+Template renderiza HTML con los datos
+
+Django retorna la respuesta HTTP al navegador
+
+El navegador muestra la página al usuario
+
+
 
 ---
 
-## 📋 Checklist de Requerimientos ABP
+## 📋 Checklist de entrega
 
-- [x] **Modelos:** Definición de campos, tipos y restricciones según requerimiento.
-- [x] **Relaciones:** Uso de `ForeignKey` con integridad referencial (`CASCADE`).
-- [x] **ORM:** Consultas complejas con filtros (`Q`), ordenamiento y agregaciones.
-- [x] **CRUD:** Operaciones completas para Cuentas y Transacciones.
-- [x] **Buscador:** Filtro avanzado con criterios de texto, tipo y fechas.
-- [x] **Seguridad:** Protección de rutas y aislamiento de datos por usuario.
-- [x] **Seed:** Comando `poblar_db` para carga masiva de datos iniciales.
+- [x] Proyecto ejecuta con `runserver` sin errores
+- [x] Modelos con campos, tipos y restricciones correctas
+- [x] Relación `ForeignKey` con `on_delete=CASCADE`
+- [x] Migraciones aplicadas sin errores
+- [x] CRUD completo de **Cuentas** desde templates propios
+- [x] CRUD completo de **Transacciones** desde templates propios
+- [x] Template de búsqueda/filtro con ORM (`Q()`, `.filter()`, fechas)
+- [x] Todas las URLs nombradas y funcionando
+- [x] Autenticación requerida en todas las vistas
+- [x] Dashboard con estadísticas (`Count`, `Sum`)
+- [x] Comando `poblar_db` con datos de prueba
+- [x] Django Admin configurado
+- [x] Templates responsive mobile-first con Bootstrap 5
+- [x] Dark Mode implementado con variables CSS
+- [x] `db.sqlite3` incluido en la entrega
+- [x] Preguntas de cierre respondidas en este documento
 
 ---
-*AlkeWallet Nordic v3.0 — Acceso a Datos con Django · Alke Financial · 2026*
+
+## 📦 requirements.txt
+django>=6.0
+django-debug-toolbar
+
+
+
+---
+
+*ABP Módulo 7 — Acceso a Datos con Django · Alke Financial · 2026*

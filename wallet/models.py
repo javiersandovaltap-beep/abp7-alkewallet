@@ -13,7 +13,6 @@ class Cuenta(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cuentas')
     nombre_titular = models.CharField(max_length=100)
     email          = models.EmailField(unique=True)
-    # ✅ FIX 1: numero_cuenta faltaba — usado en TODOS los templates
     numero_cuenta = models.CharField(
         max_length=20,
         unique=True,
@@ -43,7 +42,6 @@ class Cuenta(models.Model):
 
 
 class Transaccion(models.Model):
-    # ✅ FIX 2: choices definidos — mismo set que usan vistas y templates
     TIPO_CHOICES = [
         ('deposito',      'Depósito'),
         ('retiro',        'Retiro'),
@@ -53,7 +51,7 @@ class Transaccion(models.Model):
     cuenta = models.ForeignKey(
         Cuenta,
         on_delete=models.CASCADE,
-        related_name='transacciones',   # ✅ FIX 6: acceso limpio cuenta.transacciones.all()
+        related_name='transacciones',   
     )
     cuenta_destino = models.ForeignKey(
         Cuenta,
@@ -65,14 +63,14 @@ class Transaccion(models.Model):
     )
     tipo  = models.CharField(
         max_length=20,
-        choices=TIPO_CHOICES,           # ✅ FIX 2 aplicado
+        choices=TIPO_CHOICES,         
     )
     monto = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(0.01)],  # ✅ FIX 4: no permite cero ni negativos
+        validators=[MinValueValidator(0.01)], 
     )
-    # ✅ FIX 3: blank=True — la descripción es opcional
+    
     descripcion = models.CharField(
         max_length=200,
         blank=True,
@@ -80,7 +78,7 @@ class Transaccion(models.Model):
     )
     fecha = models.DateTimeField(auto_now_add=True)
 
-    # ✅ FIX 5: __str__ útil en Admin y shell
+   
     def __str__(self):
         return f"{self.get_tipo_display()} ${self.monto} — {self.cuenta.nombre_titular}"
 
