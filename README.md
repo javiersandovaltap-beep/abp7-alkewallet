@@ -114,21 +114,37 @@ Acceso: `http://127.0.0.1:8000/`
 
 ## 🛠️ Evolución Técnica: Problemas Resueltos
 
-### 🌑 1. Modo Oscuro con Persistencia
-**Problema:** El cambio de tema se perdía al recargar la página.  
-**Solución:** Implementación de script `localStorage` en `base.html` y variables CSS con `@media (prefers-color-scheme)` y selectores `[data-theme="dark"]`.
+### 1. Django template tags dentro de `style=""`
+**Síntoma:** VS Code marcaba `css(css-identifierexpected)`.  
+**Causa:** `style="{% if ... %}...{% endif %}"` es CSS inválido.  
+**Solución:** Lógica condicional movida a clases CSS:
+```html
+<!-- ❌ Incorrecto -->
+<span style="color: {% if cuenta.saldo < 0%}red{% endif %}">
 
-### 📉 2. Estadísticas en el Dashboard
-**Problema:** Los totales de ingresos/gastos no se calculaban dinámicamente.  
-**Solución:** Lógica de agregación con `Sum` y `Case/When` en `views.py` para separar flujos monetarios mensuales sin múltiples queries.
+<!-- ✅ Correcto -->
+<span class="{% if cuenta.saldo < 0%}text-danger{% else %}text-success{% endif %}">
+```
 
-### 🧩 3. Error de Bloque Duplicado (`TemplateSyntaxError`)
-**Problema:** Varias páginas arrojaban error por etiquetas `{% endblock %}` redundantes.  
-**Solución:** Auditoría completa de templates y estandarización del cierre de bloques para evitar errores de renderizado en Django 6.
+### 2. `alert-error` sin estilo en Bootstrap
+**Causa:** Django genera el tag `error`; Bootstrap espera `danger`.  
+**Solución en `base.html`:**
+```html
+class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
+```
 
-### 📱 4. Responsividad Crítica en Buscador
-**Problema:** En dispositivos móviles, los elementos del buscador se sobreponían o desaparecían.  
-**Solución:** Migración a un sistema de cuadrícula flexible (Grid) y eliminación de márgenes negativos obsoletos.
+### 3. `UNIQUE constraint failed` al agregar `numero_cuenta`
+**Causa:** Filas existentes recibían el mismo `default=''`, violando `unique=True`.  
+**Solución:** Borrar `db.sqlite3` y la migración fallida, remigrar con tabla vacía.
+
+### 4. `'djdt' is not a registered namespace` — Error 500
+**Causa:** `django-debug-toolbar` activo en `MIDDLEWARE` sin su URL registrada.  
+**Solución en `urls.py`:**
+```python
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [path('__debug__/', include(debug_toolbar.urls))] + urlpatterns
+```
 
 ### 5. `/login/` devolvía 404
 **Causa:** La ruta de login no estaba en `urls.py`.  
