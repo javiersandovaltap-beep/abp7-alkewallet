@@ -1,0 +1,8 @@
+# Excluir templates HTML del conteo de lenguajes
+templates/**  linguist-vendored
+
+# Si también tienes HTML en otras carpetas
+**/templates/** linguist-vendored
+
+# Opcional: excluir archivos estáticos (CSS, JS de terceros)
+static/**  linguist-vendored
