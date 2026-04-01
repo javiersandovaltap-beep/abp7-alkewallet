@@ -1,0 +1,131 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Cuentas — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER BANNER ===== -->
+<div class="page-banner">
+  <div class="container px-3 px-md-4">
+    <div class="row align-items-end g-3">
+
+      <div class="col-12 col-md-8 fade-section">
+        <h1 class="text-heading text-dark mb-1" style="font-size:1.75rem;">Mis Cuentas</h1>
+        <p class="text-caption mb-0">
+          {% if page_obj.paginator.count == 0 %}
+            Sin cuentas registradas aún
+          {% elif page_obj.paginator.count == 1 %}
+            1 cuenta registrada
+          {% else %}
+            {{ page_obj.paginator.count }} cuentas registradas
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <a href="{% url 'wallet:cuenta_create' %}"
+           class="btn btn-primary-clean fw-semibold px-4 shadow-sm w-100 w-md-auto">
+          + Nueva Cuenta
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTENIDO PRINCIPAL ===== -->
+<div class="container px-3 px-md-4 py-4">
+
+  {% if cuentas %}
+
+    <!-- ===== LISTA DE CUENTAS (Premium Style) ===== -->
+    <div class="row g-3">
+      {% for cuenta in cuentas %}
+      <div class="col-12 col-md-6 col-xl-4 animate-in">
+        <div class="card-clean h-100 p-4">
+          <div class="d-flex align-items-start justify-content-between mb-3">
+            <div class="txn-icon txn-icon-transfer" style="width:48px; height:48px; font-size:1.3rem;">
+              {{ cuenta.nombre_titular|first|upper }}
+            </div>
+            <div>
+              {% if cuenta.tipo_cuenta == 'corriente' %}
+                <span class="badge badge-soft-primary">Corriente</span>
+              {% elif cuenta.tipo_cuenta == 'ahorro' %}
+                <span class="badge badge-soft-success">Ahorro</span>
+              {% else %}
+                <span class="badge badge-soft-warning">{{ cuenta.get_tipo_cuenta_display|default:cuenta.tipo_cuenta }}</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h5 class="text-heading mb-1 text-dark">{{ cuenta.nombre_titular }}</h5>
+            <code style="font-size:0.75rem; color:var(--text-caption); background:var(--bg-color); padding:0.15rem 0.4rem; border-radius:4px;">
+              {{ cuenta.numero_cuenta }}
+            </code>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-end mt-auto">
+            <div>
+              <p class="text-caption mb-1">Saldo disponible</p>
+              <h4 class="stat-value mb-0 {% if cuenta.saldo < 0 %}text-danger{% else %}text-success{% endif %}" style="font-size:1.5rem;">
+                ${{ cuenta.saldo|floatformat:2 }}
+              </h4>
+            </div>
+            <div class="d-flex gap-1">
+              <a href="{% url 'wallet:cuenta_detail' cuenta.pk %}" class="btn btn-sm p-1" title="Ver">
+                <div class="txn-icon txn-icon-transfer" style="width:36px; height:36px; font-size:1rem;">👁️</div>
+              </a>
+              <a href="{% url 'wallet:cuenta_update' cuenta.pk %}" class="btn btn-sm p-1" title="Editar">
+                <div class="txn-icon txn-icon-default" style="width:36px; height:36px; font-size:1rem; background:var(--warning-light); color:var(--warning-color);">✏️</div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ===== PAGINACIÓN ===== -->
+    {% if is_paginated %}
+    <div class="mt-4 animate-in">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        <div class="text-caption">
+          Pág. <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong>
+        </div>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1" style="border-radius: var(--radius-sm) 0 0 var(--radius-sm);">«</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link" style="background:var(--accent-color); border-color:var(--accent-color);">{{ page_obj.number }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" style="border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">»</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  {% else %}
+
+    <!-- ===== ESTADO VACÍO ===== -->
+    <div class="card-clean text-center py-5 px-4 animate-in">
+      <div class="py-3">
+        <div class="mb-3" style="font-size:3.5rem; opacity:0.2;">💼</div>
+        <h5 class="text-heading mb-2">No hay cuentas</h5>
+        <p class="text-caption mb-4 mx-auto" style="max-width:280px;">
+          Empieza creando tu primera cuenta para gestionar tus ahorros e ingresos.
+        </p>
+        <a href="{% url 'wallet:cuenta_create' %}" class="btn btn-primary-clean px-4 shadow-sm">
+          + Crear primera cuenta
+        </a>
+      </div>
+    </div>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Panel de Control — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<div class="page-banner">
+  <div class="container">
+    <div class="row align-items-end g-3">
+      <div class="col-12 col-md-8 fade-section">
+        <p class="text-caption mb-1 text-uppercase fw-bold" style="letter-spacing:0.06em;">
+          Hola de nuevo 👋
+        </p>
+        <h1 class="text-display text-dark mb-1" style="font-size:1.75rem;">
+          {{ user.username }}
+        </h1>
+        <p class="text-caption mb-0">
+          Último acceso: {{ user.last_login|date:"d/m/Y H:i" }}
+        </p>
+      </div>
+      <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+        <a href="{% url 'wallet:transaccion_create' %}" class="btn btn-primary-clean w-100 w-md-auto">
+          + Nuevo Movimiento
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container px-3 px-md-4 py-4">
+
+  <!-- ═══════ STAT CARDS ═══════ -->
+  <div class="row g-3 mb-4">
+
+    <!-- Ahorro Total -->
+    <div class="col-12 col-md-4 animate-in">
+      <div class="stat-card h-100 card-clean" style="background:linear-gradient(135deg,#2563eb,#1e40af); color:white;">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="stat-icon" style="background:rgba(255,255,255,0.18);">💰</div>
+          <span class="stat-label" style="color:rgba(255,255,255,0.8);">Ahorro Total</span>
+        </div>
+        <div class="stat-value text-white">${{ saldo_total|floatformat:2 }}</div>
+        <p class="text-caption mt-2 mb-0" style="color:rgba(255,255,255,0.6);">
+          {{ total_cuentas }} cuenta{{ total_cuentas|pluralize }} activa{{ total_cuentas|pluralize }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Ingresos del Mes -->
+    <div class="col-6 col-md-4 animate-in">
+      <div class="stat-card h-100 card-clean">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="stat-icon" style="background:var(--success-light); color:var(--success-color);">📈</div>
+          <span class="stat-label">Ingresos del Mes</span>
+        </div>
+        <div class="stat-value" style="color:var(--success-color);">+${{ ingresos_mes|floatformat:2 }}</div>
+        <p class="text-caption mt-2 mb-0">Depósitos recibidos</p>
+      </div>
+    </div>
+
+    <!-- Gastos del Mes -->
+    <div class="col-6 col-md-4 animate-in">
+      <div class="stat-card h-100 card-clean">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="stat-icon" style="background:var(--danger-light); color:var(--danger-color);">📉</div>
+          <span class="stat-label">Gastos del Mes</span>
+        </div>
+        <div class="stat-value" style="color:var(--danger-color);">-${{ gastos_mes|floatformat:2 }}</div>
+        <p class="text-caption mt-2 mb-0">Retiros y transferencias</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════ QUICK ACTIONS ═══════ -->
+  <div class="card-clean p-3 mb-4 animate-in">
+    <div class="quick-actions">
+      <a href="{% url 'wallet:transaccion_create' %}" class="quick-action-btn">
+        <div class="quick-action-icon">↑</div>
+        <span class="quick-action-label">Depositar</span>
+      </a>
+      <a href="{% url 'wallet:transaccion_create' %}" class="quick-action-btn">
+        <div class="quick-action-icon" style="background:var(--danger-light); color:var(--danger-color);">↓</div>
+        <span class="quick-action-label">Retirar</span>
+      </a>
+      <a href="{% url 'wallet:transaccion_create' %}" class="quick-action-btn">
+        <div class="quick-action-icon" style="background:var(--warning-light); color:var(--warning-color);">↔</div>
+        <span class="quick-action-label">Transferir</span>
+      </a>
+      <a href="{% url 'wallet:transaccion_buscar' %}" class="quick-action-btn">
+        <div class="quick-action-icon" style="background:var(--success-light); color:var(--success-color);">🔍</div>
+        <span class="quick-action-label">Buscar</span>
+      </a>
+      <a href="{% url 'wallet:cuenta_create' %}" class="quick-action-btn">
+        <div class="quick-action-icon" style="background:rgba(139,92,246,0.08); color:#7c3aed;">+</div>
+        <span class="quick-action-label">Cuenta</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══════ DOS COLUMNAS ═══════ -->
+  <div class="row g-3 g-lg-4 mb-4">
+
+    <!-- Mis Cuentas -->
+    <div class="col-12 col-lg-6 animate-in">
+      <div class="card-clean h-100">
+        <div class="d-flex justify-content-between align-items-center p-4 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <div class="txn-icon txn-icon-transfer" style="width:36px;height:36px;font-size:1rem;">💳</div>
+            <h5 class="mb-0 text-heading">Mis Cuentas</h5>
+          </div>
+          <a href="{% url 'wallet:cuenta_create' %}" class="btn btn-primary-clean btn-sm px-3">+ Nueva</a>
+        </div>
+
+        <div class="px-4 pb-4 pt-2">
+          {% if ultimas_cuentas %}
+            {% for c in ultimas_cuentas %}
+            <div class="txn-row animate-in">
+              <div class="txn-icon txn-icon-transfer">
+                {{ c.nombre_titular|first|upper }}
+              </div>
+              <div class="txn-info">
+                <div class="txn-name">{{ c.nombre_titular }}</div>
+                <div class="txn-meta">{{ c.numero_cuenta }}</div>
+              </div>
+              <div class="txn-amount {% if c.saldo < 0 %}txn-amount-neg{% endif %}">
+                ${{ c.saldo|floatformat:2 }}
+              </div>
+            </div>
+            {% endfor %}
+            <div class="text-center pt-3">
+              <a href="{% url 'wallet:cuenta_list' %}" class="text-decoration-none fw-semibold small" style="color:var(--accent-color);">
+                Ver todas las cuentas →
+              </a>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <div style="font-size:2.5rem; opacity:0.3; margin-bottom:0.75rem;">💳</div>
+              <h6 class="fw-bold mb-1" style="color:var(--text-secondary);">Sin cuentas</h6>
+              <p class="text-caption mb-3">Creá la primera cuenta para comenzar</p>
+              <a href="{% url 'wallet:cuenta_create' %}" class="btn btn-primary-clean btn-sm px-3">+ Crear cuenta</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+    <div class="col-12 col-lg-6 animate-in">
+      <div class="card-clean h-100">
+        <div class="d-flex justify-content-between align-items-center p-4 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <div class="txn-icon txn-icon-deposit" style="width:36px;height:36px;font-size:1rem;">💸</div>
+            <h5 class="mb-0 text-heading">Actividad Reciente</h5>
+          </div>
+          <a href="{% url 'wallet:transaccion_create' %}" class="btn btn-primary-clean btn-sm px-3">+ Nueva</a>
+        </div>
+
+        <div class="px-4 pb-4 pt-2">
+          {% if ultimas_transacciones %}
+            {% for t in ultimas_transacciones %}
+            <div class="txn-row animate-in">
+              <div class="txn-icon {% if t.tipo == 'deposito' %}txn-icon-deposit{% elif t.tipo == 'retiro' %}txn-icon-withdraw{% else %}txn-icon-transfer{% endif %}">
+                {% if t.tipo == 'deposito' %}↑{% elif t.tipo == 'retiro' %}↓{% else %}↔{% endif %}
+              </div>
+              <div class="txn-info">
+                <div class="txn-name">{{ t.cuenta.nombre_titular }}</div>
+                <div class="txn-meta">
+                  {{ t.get_tipo_display|default:t.tipo|capfirst }} · {{ t.fecha|date:"d/m/Y" }}
+                </div>
+              </div>
+              <div class="txn-amount {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}txn-amount-neg{% else %}txn-amount-pos{% endif %}">
+                {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}−{% else %}+{% endif %}${{ t.monto|floatformat:2 }}
+              </div>
+            </div>
+            {% endfor %}
+            <div class="text-center pt-3 border-top" style="border-color:var(--border-color) !important;">
+              <a href="{% url 'wallet:transaccion_list' %}" class="text-decoration-none fw-semibold small" style="color:var(--accent-color);">
+                Ver todas las transacciones →
+              </a>
+            </div>
+          {% else %}
+            <div class="text-center py-5">
+              <div style="font-size:2.5rem; opacity:0.3; margin-bottom:0.75rem;">💸</div>
+              <h6 class="fw-bold mb-1" style="color:var(--text-secondary);">Sin transacciones</h6>
+              <p class="text-caption mb-3">Registrá la primera transacción</p>
+              <a href="{% url 'wallet:transaccion_create' %}" class="btn btn-primary-clean btn-sm px-3">+ Registrar</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

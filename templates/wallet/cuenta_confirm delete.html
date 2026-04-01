@@ -1,0 +1,89 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Eliminar Cuenta — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- HEADER BANNER -->
+<div class="page-banner bg-danger-soft">
+  <div class="container px-3 px-md-4">
+    <div class="row align-items-end g-3 fade-section">
+      <div class="col-12">
+        <h1 class="text-heading text-danger mb-1" style="font-size:1.75rem;">🗑️ Eliminar Cuenta</h1>
+        <p class="text-caption mb-0" style="color:var(--danger-color) !important; opacity:0.8;">
+          Esta acción es permanente y eliminará todo el historial asociado.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="container px-3 px-md-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+
+      <div class="card-clean p-4 animate-in">
+        
+        <!-- Advertencia Visual -->
+        <div class="text-center mb-4">
+          <div class="txn-icon mx-auto mb-3" style="width:72px; height:72px; background:var(--danger-light); color:var(--danger-color); font-size:2rem;">
+            ⚠️
+          </div>
+          <h4 class="text-heading text-dark mb-2">Advertencia Crítica</h4>
+          <p class="text-caption px-3">
+            Estás por cerrar definitivamente la cuenta de <strong>{{ cuenta.nombre_titular }}</strong>. Esta acción no se puede deshacer.
+          </p>
+        </div>
+
+        <!-- Resumen de lo que se borra -->
+        <div class="p-3 rounded-3 mb-4" style="background:var(--bg-color); border:1px solid var(--border-color);">
+          <div class="info-item border-bottom py-2">
+            <span class="text-caption">Titular</span>
+            <span class="text-dark fw-bold">{{ cuenta.nombre_titular }}</span>
+          </div>
+          <div class="info-item border-bottom py-2">
+            <span class="text-caption">N° Cuenta</span>
+            <code class="text-dark">{{ cuenta.numero_cuenta }}</code>
+          </div>
+          <div class="info-item border-bottom py-2">
+            <span class="text-caption">Saldo Final</span>
+            <span class="text-heading {% if cuenta.saldo < 0 %}text-danger{% else %}text-success{% endif %}">
+               ${{ cuenta.saldo|floatformat:2 }}
+            </span>
+          </div>
+          <div class="info-item py-2">
+            <span class="text-caption">Impacto</span>
+            <span class="text-danger small fw-bold">
+              {{ cuenta.transacciones.count }} movimientos serán borrados
+            </span>
+          </div>
+        </div>
+
+        <!-- Alerta persistencia -->
+        <div class="p-3 mb-4 rounded-3 text-center" style="background:rgba(220,38,38,0.05); border:1px dashed var(--danger-color);">
+           <p class="mb-0 small text-danger fw-semibold">
+             ⚠️ Al confirmar, perderás acceso a todos los reportes y datos de esta cuenta.
+           </p>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="d-grid gap-3">
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger fw-bold w-100 py-3" style="border-radius:var(--radius-sm);">
+              Confirmo eliminación total
+            </button>
+          </form>
+          <a href="{% url 'wallet:cuenta_detail' cuenta.pk %}" class="btn btn-outline-secondary fw-semibold py-3" style="border-radius:var(--radius-sm);">
+            No, volver atrás
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

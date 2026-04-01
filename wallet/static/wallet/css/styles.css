@@ -1,0 +1,552 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   AlkeWallet — Nordic Minimalist Design System v3.0
+   Implements: Typography, Animations, Dark Mode, Premium Forms,
+               Quick Actions, Transaction Icons, Skeleton Loaders
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. CSS VARIABLES (LIGHT + DARK) ─── */
+:root {
+  --bg-color: #f7f9fc;
+  --surface-color: #ffffff;
+  --surface-hover: #f1f5f9;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-caption: #9ca3af;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: rgba(37, 99, 235, 0.08);
+  --border-color: #edf2f7;
+  --danger-color: #ef4444;
+  --danger-light: rgba(239, 68, 68, 0.08);
+  --success-color: #10b981;
+  --success-light: rgba(16, 185, 129, 0.08);
+  --warning-color: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.08);
+  --shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.05);
+  --shadow-md: 0 8px 30px -8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 15px 50px -12px rgba(0,0,0,0.08);
+  --radius-sm: 0.625rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── DARK MODE ─── */
+[data-theme="dark"] {
+  --bg-color: #0f1117;
+  --surface-color: #1a1d27;
+  --surface-hover: #252836;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-caption: #64748b;
+  --accent-color: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-light: rgba(59, 130, 246, 0.12);
+  --border-color: #2d3348;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --success-light: rgba(16, 185, 129, 0.15);
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.3);
+  --shadow-md: 0 8px 30px -8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 15px 50px -12px rgba(0,0,0,0.5);
+}
+
+[data-theme="dark"] .navbar {
+  background-color: var(--surface-color) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .navbar .nav-link { color: var(--text-secondary) !important; }
+[data-theme="dark"] .navbar .nav-link.active { color: var(--accent-color) !important; }
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--surface-hover);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .table { color: var(--text-primary); }
+[data-theme="dark"] .text-dark { color: var(--text-primary) !important; }
+[data-theme="dark"] .text-muted { color: var(--text-secondary) !important; }
+[data-theme="dark"] .bg-white { background-color: var(--surface-color) !important; }
+[data-theme="dark"] .bg-light { background-color: var(--surface-hover) !important; }
+[data-theme="dark"] .border-bottom { border-color: var(--border-color) !important; }
+[data-theme="dark"] .border-top { border-color: var(--border-color) !important; }
+[data-theme="dark"] footer { background-color: #0a0c12 !important; }
+[data-theme="dark"] .bottom-nav {
+  background-color: var(--surface-color);
+  border-color: var(--border-color);
+}
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+/* ─── 2. TYPOGRAPHY HIERARCHY ─── */
+body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  padding-bottom: 80px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
+}
+
+@media (min-width: 768px) {
+  body { padding-bottom: 0; }
+}
+
+/* Display — saldo principal */
+.text-display {
+  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+
+/* Section headings */
+.text-heading {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
+}
+
+/* Table/column headers */
+.text-subheading {
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+/* Small secondary info */
+.text-caption {
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--text-caption);
+}
+
+a {
+  color: var(--accent-color);
+  transition: color var(--transition-fast);
+}
+a:hover { color: var(--accent-hover); }
+
+/* ─── 3. NAVBAR ─── */
+.navbar {
+  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+}
+.navbar .nav-link {
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  font-size: 0.9rem;
+}
+.navbar .nav-link:hover {
+  color: var(--text-primary);
+  background-color: var(--accent-light);
+}
+.navbar .nav-link.active {
+  color: var(--accent-color) !important;
+  background-color: var(--accent-light);
+  font-weight: 600;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+}
+.theme-toggle:hover {
+  background-color: var(--accent-light);
+  border-color: var(--accent-color);
+  transform: rotate(15deg);
+}
+
+/* ─── 4. BOTTOM NAVIGATION (MOBILE) ─── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem 0;
+  z-index: 1050;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+  body { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+
+.bottom-nav a {
+  text-decoration: none;
+  color: var(--text-caption);
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.6rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+.bottom-nav a:hover { color: var(--text-primary); }
+.bottom-nav a.active {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+.bottom-nav a span:first-child {
+  font-size: 1.3rem;
+  filter: grayscale(100%);
+  opacity: 0.5;
+  transition: all var(--transition-base);
+}
+.bottom-nav a.active span:first-child {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: translateY(-3px) scale(1.1);
+}
+
+/* ─── 5. CARDS ─── */
+.card-clean {
+  background: var(--surface-color);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--transition-base), transform var(--transition-base),
+              background-color var(--transition-slow);
+  overflow: hidden;
+}
+.card-clean:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+/* Stat cards on dashboard */
+.stat-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.stat-card .stat-value {
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -1px;
+  line-height: 1.2;
+}
+.stat-card .stat-label {
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+/* ─── 6. QUICK ACTIONS BAR ─── */
+.quick-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: all var(--transition-base);
+}
+.quick-action-btn:hover {
+  color: var(--accent-color);
+  transform: translateY(-2px);
+}
+.quick-action-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: var(--accent-light);
+  color: var(--accent-color);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+.quick-action-btn:hover .quick-action-icon {
+  background: var(--accent-color);
+  color: white;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+  transform: scale(1.08);
+}
+.quick-action-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ─── 7. TRANSACTION ITEM (Category Icons) ─── */
+.txn-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+.txn-icon-deposit  { background: var(--success-light); color: var(--success-color); }
+.txn-icon-withdraw { background: var(--danger-light);  color: var(--danger-color);  }
+.txn-icon-transfer { background: var(--accent-light);  color: var(--accent-color);  }
+.txn-icon-default  { background: var(--warning-light); color: var(--warning-color); }
+
+.txn-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-fast);
+}
+.txn-row:last-child { border-bottom: none; }
+.txn-row:hover { background-color: var(--surface-hover); border-radius: var(--radius-sm); }
+.txn-info { flex: 1; min-width: 0; }
+.txn-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.txn-meta {
+  font-size: 0.75rem;
+  color: var(--text-caption);
+  margin-top: 0.1rem;
+}
+.txn-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.txn-amount-pos { color: var(--success-color); }
+.txn-amount-neg { color: var(--danger-color); }
+
+/* ─── 8. BADGES ─── */
+.badge-soft-success { background-color: var(--success-light); color: #047857; }
+.badge-soft-danger  { background-color: var(--danger-light);  color: #b91c1c; }
+.badge-soft-primary { background-color: var(--accent-light);  color: #1d4ed8; }
+.badge-soft-warning { background-color: var(--warning-light); color: #92400e; }
+
+/* ─── 9. BUTTONS ─── */
+.btn-primary-clean {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1.5rem;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
+}
+.btn-primary-clean:hover {
+  background-color: var(--accent-hover);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+.btn-primary-clean:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+/* ─── 10. PREMIUM FORM INPUTS ─── */
+.form-group-premium {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+.form-group-premium .form-label {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.02em;
+}
+.form-group-premium .form-control,
+.form-group-premium .form-select {
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  font-size: 0.92rem;
+  transition: all var(--transition-fast);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+}
+.form-group-premium .form-control:focus,
+.form-group-premium .form-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
+  outline: none;
+}
+.form-group-premium .input-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--text-caption);
+  pointer-events: none;
+}
+.form-group-premium .form-control.has-icon,
+.form-group-premium .form-select.has-icon {
+  padding-left: 2.8rem;
+}
+
+/* ─── 11. MICRO-ANIMATIONS ─── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes bounceIn {
+  0%   { transform: scale(0.8); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Apply to cards */
+.animate-in {
+  animation: fadeInUp 0.5s var(--transition-slow) both;
+}
+.animate-in:nth-child(1) { animation-delay: 0s; }
+.animate-in:nth-child(2) { animation-delay: 0.06s; }
+.animate-in:nth-child(3) { animation-delay: 0.12s; }
+.animate-in:nth-child(4) { animation-delay: 0.18s; }
+.animate-in:nth-child(5) { animation-delay: 0.24s; }
+.animate-in:nth-child(6) { animation-delay: 0.30s; }
+
+/* Fade sections */
+.fade-section {
+  animation: fadeIn 0.6s ease both;
+}
+
+/* ─── 12. SKELETON LOADER ─── */
+.skeleton {
+  background: linear-gradient(90deg, var(--border-color) 25%, var(--surface-hover) 50%, var(--border-color) 75%);
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+.skeleton-text {
+  height: 0.9rem;
+  margin-bottom: 0.5rem;
+  width: 80%;
+}
+.skeleton-text-sm {
+  height: 0.65rem;
+  margin-bottom: 0.4rem;
+  width: 55%;
+}
+.skeleton-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+.skeleton-card {
+  height: 120px;
+  border-radius: var(--radius-lg);
+}
+
+/* ─── 13. HERO / BANNER ─── */
+.page-banner {
+  background-color: var(--surface-color);
+  padding: 2rem 0 1.75rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-slow), border-color var(--transition-slow);
+}
+
+/* ─── 14. TABLE HEADER TEXT ─── */
+.th-clean {
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding: 0.85rem 0.75rem;
+  border: none !important;
+}
+
+/* ─── 15. FOOTER + MISC ─── */
+footer {
+  transition: background-color var(--transition-slow);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-color); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-caption); }
+
+/* Selection color */
+::selection {
+  background: var(--accent-light);
+  color: var(--accent-hover);
+}

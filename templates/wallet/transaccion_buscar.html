@@ -1,0 +1,204 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Buscar Transacciones — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- HEADER BANNER -->
+<div class="page-banner">
+  <div class="container px-3 px-md-4">
+    <div class="row align-items-end g-3">
+      <div class="col-12 fade-section">
+        <h1 class="text-heading text-dark mb-1" style="font-size:1.75rem;">Buscador</h1>
+        <p class="text-caption mb-0">
+          Filtrá por titular, tipo o rango de fechas
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="container px-3 px-md-4 py-4">
+
+  <!-- FORMULARIO DE BÚSQUEDA -->
+  <div class="card-clean mb-4 animate-in" style="overflow:hidden;">
+    <div class="px-4 py-3" style="border-bottom:1px solid var(--border-color);">
+      <h6 class="text-subheading mb-0" style="font-size:0.82rem;">
+        Filtros de búsqueda
+      </h6>
+    </div>
+
+    <div class="card-body p-4">
+      <form method="get" novalidate>
+        <div class="row g-3">
+
+          <!-- Titular / nombre -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="form-group-premium mb-0">
+              <label for="q" class="form-label">Titular</label>
+              <input type="text" id="q" name="q" value="{{ request.GET.q }}" placeholder="Nombre..." class="form-control">
+            </div>
+          </div>
+
+          <!-- Tipo -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="form-group-premium mb-0">
+              <label for="tipo" class="form-label">Tipo</label>
+              <select id="tipo" name="tipo" class="form-select">
+                <option value="">— Seleccionar —</option>
+                <option value="deposito"      {% if request.GET.tipo == 'deposito' %}selected{% endif %}>Depósito</option>
+                <option value="retiro"        {% if request.GET.tipo == 'retiro' %}selected{% endif %}>Retiro</option>
+                <option value="transferencia" {% if request.GET.tipo == 'transferencia' %}selected{% endif %}>Transferencia</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Fecha desde -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="form-group-premium mb-0">
+              <label for="fecha_desde" class="form-label">Desde</label>
+              <input type="date" id="fecha_desde" name="fecha_desde" value="{{ request.GET.fecha_desde }}" class="form-control">
+            </div>
+          </div>
+
+          <!-- Fecha hasta -->
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="form-group-premium mb-0">
+              <label for="fecha_hasta" class="form-label">Hasta</label>
+              <input type="date" id="fecha_hasta" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}" class="form-control">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botones -->
+        <div class="d-flex gap-3 flex-column flex-sm-row mt-4">
+          <button type="submit" class="btn btn-primary-clean fw-semibold flex-sm-fill w-100">
+            🔍 Buscar movimientos
+          </button>
+          <a href="{% url 'wallet:transaccion_buscar' %}" class="btn btn-outline-secondary fw-semibold flex-sm-fill text-center" 
+             style="border-radius:var(--radius-sm); padding:0.65rem 1.5rem;">
+            Limpiar filtros
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  {% if request.GET.q or request.GET.tipo or request.GET.fecha_desde or request.GET.fecha_hasta %}
+
+    <!-- Encabezado resultados -->
+    <div class="d-flex justify-content-between align-items-center mb-3 animate-in">
+      <div>
+        <h6 class="text-heading mb-0" style="font-size:1rem;">Resultados</h6>
+        <p class="text-caption mb-0">
+          {% if transacciones %}
+            {{ transacciones|length }} resultado{{ transacciones|length|pluralize }} encontrado{{ transacciones|length|pluralize }}
+          {% else %}
+            Sin resultados para esta búsqueda
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    {% if transacciones %}
+
+      <!-- Lista de resultados (Mismo estilo que transaccion_list) -->
+      <div class="card-clean mb-4 p-4 animate-in">
+        <div class="d-none d-md-grid grid-header pb-2 mb-2 border-bottom" 
+             style="grid-template-columns: 1fr 120px 1fr 120px 100px; border-color: var(--border-color) !important;">
+          <div class="text-subheading">Cuenta / Titular</div>
+          <div class="text-subheading">Tipo</div>
+          <div class="text-subheading">Descripción</div>
+          <div class="text-subheading text-end">Monto</div>
+          <div class="text-subheading text-end pe-2">Ver</div>
+        </div>
+
+        {% for t in transacciones %}
+        <div class="txn-row animate-in d-flex d-md-grid align-items-center" 
+             style="grid-template-columns: 1fr 120px 1fr 120px 100px; padding: 1rem 0;">
+          
+          <!-- Icono + Info -->
+          <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <div class="txn-icon {% if t.tipo == 'deposito' %}txn-icon-deposit{% elif t.tipo == 'retiro' %}txn-icon-withdraw{% else %}txn-icon-transfer{% endif %}">
+              {% if t.tipo == 'deposito' %}↑{% elif t.tipo == 'retiro' %}↓{% else %}↔{% endif %}
+            </div>
+            <div class="txn-info">
+              <div class="txn-name">{{ t.cuenta.nombre_titular }}</div>
+              <div class="txn-meta">
+                <span class="d-md-none">{{ t.get_tipo_display|default:t.tipo|capfirst }} · </span>{{ t.fecha|date:"d/m/Y" }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Tipo (Desktop) -->
+          <div class="d-none d-md-block">
+            {% if t.tipo == 'deposito' %}
+              <span class="badge badge-soft-success">Depósito</span>
+            {% elif t.tipo == 'retiro' %}
+              <span class="badge badge-soft-danger">Retiro</span>
+            {% else %}
+              <span class="badge badge-soft-primary">Transferencia</span>
+            {% endif %}
+          </div>
+
+          <!-- Descripción (Desktop) -->
+          <div class="d-none d-md-block text-muted small text-truncate pe-3">
+            {{ t.descripcion|default:"—" }}
+          </div>
+
+          <!-- Monto -->
+          <div class="txn-amount px-2 {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}txn-amount-neg{% else %}txn-amount-pos{% endif %}">
+            {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}−{% else %}+{% endif %}${{ t.monto|floatformat:2 }}
+          </div>
+
+          <!-- Ver -->
+          <div class="text-end pe-2">
+            <a href="{% url 'wallet:transaccion_detail' t.pk %}" class="btn btn-sm p-1" title="Ver detalle">
+              <div class="txn-icon txn-icon-transfer" style="width:32px; height:32px; font-size:0.9rem;">👁️</div>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+
+      <!-- Sin resultados -->
+      <div class="card-clean text-center py-5 px-4 animate-in">
+        <div class="py-3">
+          <div class="mb-3" style="font-size:3.5rem; opacity:0.2;">📊</div>
+          <h5 class="text-heading mb-2">Sin resultados</h5>
+          <p class="text-caption mb-4 mx-auto" style="max-width:280px;">
+            No se encontraron transacciones que coincidan con los filtros aplicados.
+          </p>
+          <a href="{% url 'wallet:transaccion_buscar' %}" class="btn btn-outline-secondary fw-semibold px-4" 
+             style="border-radius:var(--radius-sm);">
+            Limpiar filtros
+          </a>
+        </div>
+      </div>
+
+    {% endif %}
+
+  {% else %}
+
+    <!-- Estado inicial — sin búsqueda aún -->
+    <div class="card-clean text-center py-5 px-4 animate-in">
+      <div class="py-3">
+        <div class="mb-3" style="font-size:3.5rem; opacity:0.2;">🔍</div>
+        <h5 class="text-heading mb-2">Comienza tu búsqueda</h5>
+        <p class="text-caption mb-0 mx-auto" style="max-width:320px;">
+          Usa los filtros de arriba para encontrar transacciones por titular, tipo o fecha.
+        </p>
+      </div>
+    </div>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

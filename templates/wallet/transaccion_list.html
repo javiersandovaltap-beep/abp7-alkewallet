@@ -1,0 +1,162 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Transacciones — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER BANNER ===== -->
+<div class="page-banner">
+  <div class="container px-3 px-md-4">
+    <div class="row align-items-end g-3">
+
+      <div class="col-12 col-md-8 fade-section">
+        <h1 class="text-heading text-dark mb-1" style="font-size:1.75rem;">Mis Transacciones</h1>
+        <p class="text-caption mb-0">
+          {% if page_obj.paginator.count == 0 %}
+            Sin transacciones registradas aún
+          {% elif page_obj.paginator.count == 1 %}
+            1 transacción en total
+          {% else %}
+            {{ page_obj.paginator.count }} transacciones en total
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="col-12 col-md-4 d-flex gap-2 justify-content-start justify-content-md-end flex-wrap mt-2 mt-md-0">
+        <a href="{% url 'wallet:transaccion_buscar' %}"
+           class="btn btn-outline-secondary fw-semibold bg-white flex-grow-1 flex-md-grow-0 text-center"
+           style="border-radius:var(--radius-sm); font-size:0.9rem;">
+           🔍 Buscar
+        </a>
+        <a href="{% url 'wallet:transaccion_create' %}"
+           class="btn btn-primary-clean fw-semibold shadow-sm flex-grow-1 flex-md-grow-0 text-center">
+          + Nueva
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTENIDO ===== -->
+<div class="container px-3 px-md-4 py-4">
+
+  {% if transacciones %}
+
+    <!-- ===== LISTA DE TRANSACCIONES (Premium Style) ===== -->
+    <div class="card-clean mb-4 p-4 animate-in">
+      <div class="d-none d-md-grid grid-header pb-2 mb-2 border-bottom" 
+           style="grid-template-columns: 50px 1fr 120px 1fr 120px 100px; border-color: var(--border-color) !important;">
+        <div class="text-subheading ps-2">#</div>
+        <div class="text-subheading">Cuenta / Titular</div>
+        <div class="text-subheading">Tipo</div>
+        <div class="text-subheading">Descripción</div>
+        <div class="text-subheading text-end">Monto</div>
+        <div class="text-subheading text-end pe-2">Acciones</div>
+      </div>
+
+      {% for t in transacciones %}
+      <div class="txn-row animate-in d-flex d-md-grid align-items-center" 
+           style="grid-template-columns: 50px 1fr 120px 1fr 120px 100px; padding: 1rem 0;">
+        
+        <!-- ID (Desktop) -->
+        <div class="d-none d-md-block ps-2 text-caption">#{{ t.pk }}</div>
+
+        <!-- Icono + Info -->
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+          <div class="txn-icon {% if t.tipo == 'deposito' %}txn-icon-deposit{% elif t.tipo == 'retiro' %}txn-icon-withdraw{% else %}txn-icon-transfer{% endif %}">
+            {% if t.tipo == 'deposito' %}↑{% elif t.tipo == 'retiro' %}↓{% else %}↔{% endif %}
+          </div>
+          <div class="txn-info">
+            <div class="txn-name">{{ t.cuenta.nombre_titular }}</div>
+            <div class="txn-meta d-md-none">
+              {{ t.get_tipo_display|default:t.tipo|capfirst }} · {{ t.fecha|date:"d/m/Y" }}
+            </div>
+            <div class="txn-meta d-none d-md-block">
+              <code style="font-size:0.7rem; color:var(--text-caption); background:var(--bg-color); padding:0.1rem 0.3rem; border-radius:4px;">
+                {{ t.cuenta.numero_cuenta }}
+              </code>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tipo (Desktop) -->
+        <div class="d-none d-md-block">
+          {% if t.tipo == 'deposito' %}
+            <span class="badge badge-soft-success">Depósito</span>
+          {% elif t.tipo == 'retiro' %}
+            <span class="badge badge-soft-danger">Retiro</span>
+          {% else %}
+            <span class="badge badge-soft-primary">Transferencia</span>
+          {% endif %}
+        </div>
+
+        <!-- Descripción (Desktop) -->
+        <div class="d-none d-md-block text-muted small text-truncate pe-3">
+          {{ t.descripcion|default:"—" }}
+        </div>
+
+        <!-- Monto -->
+        <div class="txn-amount px-2 {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}txn-amount-neg{% else %}txn-amount-pos{% endif %}">
+          {% if t.tipo == 'retiro' or t.tipo == 'transferencia' %}−{% else %}+{% endif %}${{ t.monto|floatformat:2 }}
+          <div class="d-md-none text-caption fw-normal" style="font-size:0.65rem;">{{ t.fecha|date:"d/m/Y" }}</div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="text-end pe-2">
+          <div class="d-flex justify-content-end gap-1">
+            <a href="{% url 'wallet:transaccion_detail' t.pk %}" class="btn btn-sm p-1" title="Ver">
+              <div class="txn-icon txn-icon-transfer" style="width:32px; height:32px; font-size:0.9rem;">👁️</div>
+            </a>
+            <a href="{% url 'wallet:transaccion_update' t.pk %}" class="btn btn-sm p-1 d-none d-md-inline-block" title="Editar">
+              <div class="txn-icon txn-icon-default" style="width:32px; height:32px; font-size:0.9rem; background:var(--warning-light); color:var(--warning-color);">✏️</div>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ===== PAGINACIÓN ===== -->
+    {% if is_paginated %}
+    <div class="mt-4 animate-in">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        <div class="text-caption">
+          Pág. <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong>
+        </div>
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1" style="border-radius: var(--radius-sm) 0 0 var(--radius-sm);">«</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link" style="background:var(--accent-color); border-color:var(--accent-color);">{{ page_obj.number }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" style="border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">»</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  {% else %}
+
+    <!-- ===== ESTADO VACÍO ===== -->
+    <div class="card-clean text-center py-5 px-4 animate-in">
+      <div class="py-3">
+        <div class="mb-3" style="font-size:3.5rem; opacity:0.2;">🛒</div>
+        <h5 class="text-heading mb-2">Sin transacciones</h5>
+        <p class="text-caption mb-4 mx-auto" style="max-width:280px;">
+          Registrá tu primer ingreso o retiro para empezar a ver el historial.
+        </p>
+        <a href="{% url 'wallet:transaccion_create' %}" class="btn btn-primary-clean px-4 shadow-sm">
+          + Registrar primera
+        </a>
+      </div>
+    </div>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

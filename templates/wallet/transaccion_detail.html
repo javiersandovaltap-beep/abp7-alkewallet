@@ -1,0 +1,169 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Transacción #{{ transaccion.pk }} — Alke Wallet{% endblock %}
+
+{% block content %}
+
+<!-- HEADER BANNER -->
+<div class="page-banner">
+  <div class="container px-3 px-md-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3 fade-section">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="{% url 'wallet:home' %}" class="text-caption text-decoration-none">🏠 Inicio</a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{% url 'wallet:transaccion_list' %}" class="text-caption text-decoration-none">Transacciones</a>
+        </li>
+        <li class="breadcrumb-item active text-heading" aria-current="page" style="font-size:0.75rem;">
+          ID #{{ transaccion.pk }}
+        </li>
+      </ol>
+    </nav>
+
+    <div class="row align-items-center g-3 fade-section">
+      <div class="col-12 col-md-8">
+        <div class="d-flex align-items-center gap-3">
+          <!-- Ícono tipo -->
+          <div class="txn-icon {% if transaccion.tipo == 'deposito' %}txn-icon-deposit{% elif transaccion.tipo == 'retiro' %}txn-icon-withdraw{% else %}txn-icon-transfer{% endif %}"
+               style="width:64px; height:64px; font-size:1.5rem;">
+            {% if transaccion.tipo == 'deposito' %}↑{% elif transaccion.tipo == 'retiro' %}↓{% else %}↔{% endif %}
+          </div>
+          <div>
+            <h1 class="text-heading text-dark mb-0" style="font-size:1.75rem;">
+              Transacción #{{ transaccion.pk }}
+            </h1>
+            <p class="text-caption mb-0">
+              {{ transaccion.cuenta.nombre_titular }} · {{ transaccion.fecha|date:"d M Y, H:i" }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4 d-flex gap-2 justify-content-md-end flex-wrap">
+        <a href="{% url 'wallet:transaccion_update' transaccion.pk %}" class="btn btn-outline-secondary btn-sm fw-semibold" style="border-radius:var(--radius-sm);">
+          ✏️ Editar
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="container px-3 px-md-4 py-4">
+  <div class="row g-4">
+
+    <!-- COLUMNA IZQUIERDA — Monto + datos -->
+    <div class="col-12 col-lg-4">
+
+      <!-- Card monto destacado -->
+      <div class="card-clean mb-4 p-4 animate-in" style="background: linear-gradient(135deg, #1e293b, #334155); color: white;">
+        <p class="text-white-50 mb-1 text-subheading" style="color: rgba(255,255,255,0.7) !important;">Monto de Operación</p>
+        <div class="stat-value {% if transaccion.tipo == 'retiro' or transaccion.tipo == 'transferencia' %}text-danger{% else %}text-white{% endif %}" style="font-size: 2.5rem; line-height:1.2;">
+          {% if transaccion.tipo == 'retiro' or transaccion.tipo == 'transferencia' %}−{% else %}+{% endif %}${{ transaccion.monto|floatformat:2 }}
+        </div>
+      </div>
+
+      <!-- Datos de la transacción -->
+      <div class="card-clean animate-in" style="animation-delay: 0.1s;">
+        <div class="px-4 py-3 border-bottom">
+          <h6 class="text-subheading mb-0">Detalles de Operación</h6>
+        </div>
+
+        <div class="card-body p-0">
+          <div class="info-item border-bottom">
+            <span class="text-caption">Tipo</span>
+            {% if transaccion.tipo == 'deposito' %}
+              <span class="badge badge-soft-success">Depósito</span>
+            {% elif transaccion.tipo == 'retiro' %}
+              <span class="badge badge-soft-danger">Retiro</span>
+            {% else %}
+              <span class="badge badge-soft-primary">Transferencia</span>
+            {% endif %}
+          </div>
+          <div class="info-item border-bottom">
+            <span class="text-caption">Estado</span>
+            <span class="badge badge-soft-success">Completada</span>
+          </div>
+          <div class="info-item border-bottom">
+            <span class="text-caption">Fecha</span>
+            <span class="text-dark fw-semibold">{{ transaccion.fecha|date:"d M Y" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="text-caption">Hora</span>
+            <span class="text-dark fw-semibold">{{ transaccion.fecha|time:"H:i" }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-4 animate-in" style="animation-delay: 0.2s;">
+        <a href="{% url 'wallet:transaccion_delete' transaccion.pk %}" class="btn btn-link text-danger text-decoration-none small fw-semibold">
+          🗑️ Eliminar este registro históricamente
+        </a>
+      </div>
+
+    </div>
+
+    <!-- COLUMNA DERECHA — Descripción + acciones -->
+    <div class="col-12 col-lg-8">
+
+      <!-- Descripción -->
+      <div class="card-clean mb-4 animate-in" style="animation-delay: 0.1s;">
+        <div class="px-4 py-3 border-bottom">
+          <h6 class="text-subheading mb-0">Nota / Descripción</h6>
+        </div>
+        <div class="card-body px-4 py-4">
+          {% if transaccion.descripcion %}
+            <p class="mb-0 text-dark" style="font-size:1rem; line-height:1.6;">
+              {{ transaccion.descripcion }}
+            </p>
+          {% else %}
+            <p class="mb-0 text-muted fst-italic" style="font-size:0.9rem; opacity:0.6;">
+              Sin descripción registrada para este movimiento.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Info de la cuenta asociada -->
+      <div class="card-clean animate-in" style="animation-delay: 0.2s;">
+        <div class="px-4 py-3 border-bottom">
+          <h6 class="text-subheading mb-0">Cuenta Asociada</h6>
+        </div>
+        <div class="card-body px-4 py-4">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="txn-icon txn-icon-transfer" style="width:52px; height:52px; font-size:1.2rem;">
+              {{ transaccion.cuenta.nombre_titular|first|upper }}
+            </div>
+            <div>
+              <div class="text-heading text-dark mb-0" style="font-size:1.1rem;">
+                {{ transaccion.cuenta.nombre_titular }}
+              </div>
+              <code class="text-caption">{{ transaccion.cuenta.numero_cuenta }}</code>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-3 mb-4" style="background:var(--bg-color); border: 1px solid var(--border-color);">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-caption">Saldo actual en cuenta</span>
+              <span class="text-heading {% if transaccion.cuenta.saldo < 0 %}text-danger{% else %}text-dark{% endif %}" style="font-size:1.1rem;">
+                ${{ transaccion.cuenta.saldo|floatformat:2 }}
+              </span>
+            </div>
+          </div>
+
+          <a href="{% url 'wallet:cuenta_detail' transaccion.cuenta.pk %}" class="btn btn-outline-secondary fw-semibold w-100" style="border-radius:var(--radius-sm); padding:0.75rem;">
+            🔍 Ver detalles de la cuenta
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

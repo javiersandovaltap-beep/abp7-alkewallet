@@ -1,0 +1,82 @@
+{% extends 'wallet/base.html' %}
+
+{% block title %}Eliminar Transacción — Alke Wallet{% endblock %}
+
+{% block content %}
+
+{# ── Clases helper — NUNCA poner Django tags dentro de style="<!-- HEADER BANNER -->
+<div class="page-banner bg-danger-soft">
+  <div class="container px-3 px-md-4">
+    <div class="row align-items-end g-3 fade-section">
+      <div class="col-12">
+        <h1 class="text-heading text-danger mb-1" style="font-size:1.75rem;">🗑️ Eliminar Transacción</h1>
+        <p class="text-caption mb-0" style="color:var(--danger-color) !important; opacity:0.8;">
+          Esta acción es permanente y no se puede deshacer.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENIDO -->
+<div class="container px-3 px-md-4 py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+
+      <div class="card-clean p-4 animate-in">
+        
+        <!-- Advertencia Visual -->
+        <div class="text-center mb-4">
+          <div class="txn-icon mx-auto mb-3" style="width:72px; height:72px; background:var(--danger-light); color:var(--danger-color); font-size:2rem;">
+            ⚠️
+          </div>
+          <h4 class="text-heading text-dark mb-2">¿Estás seguro?</h4>
+          <p class="text-caption px-3">
+            Vas a eliminar el registro de este movimiento. Esto afectará el historial de la cuenta de <strong>{{ transaccion.cuenta.nombre_titular }}</strong>.
+          </p>
+        </div>
+
+        <!-- Resumen de lo que se borra -->
+        <div class="p-3 rounded-3 mb-4" style="background:var(--bg-color); border:1px solid var(--border-color);">
+          <div class="info-item border-bottom py-2">
+            <span class="text-caption">Tipo</span>
+            <span class="text-dark fw-bold">{{ transaccion.get_tipo_display|default:transaccion.tipo|capfirst }}</span>
+          </div>
+          <div class="info-item border-bottom py-2">
+            <span class="text-caption">Monto</span>
+            <span class="text-heading {% if transaccion.tipo == 'retiro' or transaccion.tipo == 'transferencia' %}text-danger{% else %}text-success{% endif %}">
+              {% if transaccion.tipo == 'retiro' or transaccion.tipo == 'transferencia' %}−{% else %}+{% endif %}${{ transaccion.monto|floatformat:2 }}
+            </span>
+          </div>
+          <div class="info-item py-2">
+            <span class="text-caption">Fecha</span>
+            <span class="text-dark fw-semibold">{{ transaccion.fecha|date:"d M Y, H:i" }}</span>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="d-grid gap-3">
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger fw-bold w-100 py-3" style="border-radius:var(--radius-sm);">
+              Sí, eliminar permanentemente
+            </button>
+          </form>
+          <a href="{% url 'wallet:transaccion_detail' transaccion.pk %}" class="btn btn-outline-secondary fw-semibold py-3" style="border-radius:var(--radius-sm);">
+            No, mantener registro
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>     </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
